@@ -65,6 +65,7 @@ The Northflank worker uses a flattened configuration structure to work with Pref
 - `billing.deploymentPlan` → `billing_deployment_plan`
 - `deployment.external.imagePath` → `deployment_external_image_path`
 - `settings.activeDeadlineSeconds` → `settings_active_deadline_seconds`
+- `deployment.storage.ephemeralStorage.storageSize` → `deployment_storage_ephemeral_storage_size`
 
 This allows for easier configuration in YAML files and work pools while maintaining compatibility with the full Northflank API.
 
@@ -100,6 +101,9 @@ The Northflank worker supports the following configuration options:
 | **Docker Configuration** | | | |
 | `deployment_docker_config_type` | str | Docker config type | "customCommand" |
 | `deployment_docker_custom_command` | str | Custom command | None |
+| **Storage** | | | |
+| `deployment_storage_ephemeral_storage_size` | int | Ephemeral storage per container, in MB (at least 1024) | Platform default |
+| `deployment_storage_shm_size` | int | Memory-backed `/dev/shm`, in MB (at least 64) | Platform default |
 | **Runtime** | | | |
 | `runtime_environment` | Dict[str, str] | Environment variables | None |
 | **Settings** | | | |

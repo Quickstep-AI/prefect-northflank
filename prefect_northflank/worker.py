@@ -21,6 +21,8 @@ from .schemas import (  # type: ignore
     JobSettings,
     JobCreationRequest,
     DockerConfig,
+    EphemeralStorage,
+    StorageConfig,
 )
 
 if TYPE_CHECKING:
@@ -108,6 +110,14 @@ class FlattenedNorthflankJobConfiguration(BaseJobConfiguration):
     )
     deployment_docker_custom_command: Optional[str] = Field(
         default=None, description="Custom command to run"
+    )
+    deployment_storage_ephemeral_storage_size: Optional[int] = Field(
+        default=None,
+        description="Ephemeral storage per container in MB (at least 1024); the platform default when unset",
+    )
+    deployment_storage_shm_size: Optional[int] = Field(
+        default=None,
+        description="Memory-backed /dev/shm size in MB (at least 64); the platform default when unset",
     )
 
     # Runtime environment
@@ -218,11 +228,30 @@ class FlattenedNorthflankJobConfiguration(BaseJobConfiguration):
                 customCommand=self.deployment_docker_custom_command,
             )
 
-        if has_external or has_internal or docker_config:
+        storage_config = None
+        if any(
+            [
+                self.deployment_storage_ephemeral_storage_size,
+                self.deployment_storage_shm_size,
+            ]
+        ):
+            storage_config = StorageConfig(
+                ephemeralStorage=(
+                    EphemeralStorage(
+                        storageSize=self.deployment_storage_ephemeral_storage_size
+                    )
+                    if self.deployment_storage_ephemeral_storage_size
+                    else None
+                ),
+                shmSize=self.deployment_storage_shm_size,
+            )
+
+        if has_external or has_internal or docker_config or storage_config:
             deployment = DeploymentConfig(
                 external=external_deployment,
                 internal=internal_deployment,
                 docker=docker_config,
+                storage=storage_config,
             )
 
         settings = None
@@ -330,6 +359,16 @@ class FlattenedNorthflankVariables(BaseVariables):
     )
     deployment_docker_custom_command: Optional[str] = Field(
         default=None, description="Custom command to run"
+    )
+    deployment_storage_ephemeral_storage_size: Optional[int] = Field(
+        default=None,
+        ge=1024,
+        description="Ephemeral storage per container in MB (at least 1024); the platform default when unset",
+    )
+    deployment_storage_shm_size: Optional[int] = Field(
+        default=None,
+        ge=64,
+        description="Memory-backed /dev/shm size in MB (at least 64); the platform default when unset",
     )
 
     # Build configuration (flattened)
